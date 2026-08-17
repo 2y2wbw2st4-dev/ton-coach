@@ -1,17 +1,17 @@
 // Netlify Function — sauvegarde/restauration des données de l'app, liée au compte (email) via le jeton de session.
 
-const { getStore } = require('@netlify/blobs');
+const { store: openStore } = require('./lib/blobs');
 
 async function resolveEmail(token) {
   if (!token) return null;
-  const sessions = getStore({ name: 'sessions' });
+  const sessions = openStore('sessions');
   const session = await sessions.get(token, { type: 'json' });
   if (!session || session.expires < Date.now()) return null;
   return session.email;
 }
 
 exports.handler = async function (event) {
-  const store = getStore({ name: 'coach-backups' });
+  const store = openStore('coach-backups');
 
   if (event.httpMethod === 'GET') {
     const token = (event.queryStringParameters || {}).token;
