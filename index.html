@@ -219,13 +219,15 @@
       </div>
     </div>
     <div class="card coach-row"><div class="coach-dot small"></div><p class="muted" style="font-size:.88rem;" id="nutri-coach"></p></div>
+    <button class="btn ghost" style="margin-top:8px;" onclick="suggestMeal()">💡 Suggestion de repas</button>
     <h2>Ajouter un repas</h2>
     <div class="foodgrid" id="foodgrid"></div>
+    <button class="btn ghost" id="foodgrid-more" style="margin-top:10px;" onclick="toggleFoodGrid()">Voir plus d'options</button>
     <div class="ob-text-input" style="margin-top:10px;">
       <input id="food-custom" placeholder="Autre… ex: Lasagnes 650 kcal 30 prot">
+      <button onclick="document.getElementById('meal-photo').click()" style="background:var(--surface2); color:var(--ink);" title="Photo">📷</button>
       <button onclick="addCustomFood()">➤</button>
     </div>
-    <button class="btn ghost" style="margin-top:12px;" onclick="document.getElementById('meal-photo').click()">📷 Ajouter par photo</button>
     <input type="file" id="meal-photo" accept="image/*" capture="environment" style="display:none" onchange="analyzeMealPhoto(event)">
     <h2>Repas du jour</h2>
     <div class="card" id="meals-today"><p class="muted">Rien d'enregistré aujourd'hui.</p></div>
@@ -268,6 +270,7 @@
       <div class="toggle"><span>🔊 Voix du coach (pendant la séance)</span><div class="sw" id="sw-voice" onclick="toggleVoice()"></div></div>
       <div class="toggle"><span>🔔 Rappels de séance</span><div class="sw" id="sw-notif" onclick="toggleNotif()"></div></div>
       <div class="toggle"><span>🎯 Objectif</span><span class="tiny" id="set-goal"></span></div>
+      <div class="toggle"><span>✏️ Mon profil (matériel, niveau...)</span><button class="chip" onclick="openProfileEdit()">Modifier</button></div>
       <div class="toggle"><span>🔥 Cible calories</span><span class="tiny" id="set-kcal"></span></div>
       <div class="toggle"><span>💾 Sauvegarder mes données</span><button class="chip" onclick="exportData()">Exporter</button></div>
       <div class="toggle"><span>📂 Restaurer</span><button class="chip" onclick="document.getElementById('import-file').click()">Importer</button><input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"></div>
@@ -740,12 +743,70 @@ function adjSet(k,d){
   if(k==='reps'){ e.cur.reps = Math.max(1, e.cur.reps + d*(e.type==='t'?5:1)); $('in-reps').textContent = e.cur.reps; }
   else { e.cur.kg = Math.max(0, e.cur.kg + d); $('in-kg').innerHTML = fmtKg(e.cur.kg)+' <small>kg</small>'; }
 }
+/* ═════════════ REPOS ENTRE SÉRIES ═════════════ */
+function restForType(type){ return type==='w' ? 90 : type==='bw' ? 60 : 45; }
+let restTimer = null, restState = null;
+function renderRest(){
+  $('ov-head').textContent = 'REPOS';
+  $('ov-body').innerHTML = `
+    <div style="text-align:center; margin-top:50px;">
+      <div class="tiny" style="text-transform:uppercase; letter-spacing:.08em;">Récupération</div>
+      <div style="font-size:4.2rem; font-weight:800; letter-spacing:-.02em; margin-top:6px;">${restState.remaining}s</div>
+      <div class="coach-row" style="justify-content:center; margin-top:24px;"><div class="coach-dot small"></div><div class="bubble">Souffle, hydrate-toi, prépare ta prochaine série.</div></div>
+    </div>`;
+  $('ov-foot').innerHTML = `
+    <div style="display:flex; gap:8px;">
+      <button class="btn ghost" onclick="adjRest(-15)">−15s</button>
+      <button class="btn ghost" onclick="adjRest(15)">+15s</button>
+    </div>
+    <button class="btn primary" style="margin-top:8px;" onclick="skipRest()">Passer le repos</button>
+    <button class="btn ghost" style="margin-top:8px;" onclick="abortSession()">Quitter la séance</button>`;
+}
+function startRest(seconds, onDone){
+  clearInterval(restTimer);
+  restState = { remaining: seconds, onDone };
+  renderRest();
+  restTimer = setInterval(()=>{
+    restState.remaining--;
+    if(restState.remaining <= 0){ endRest(); return; }
+    renderRest();
+  }, 1000);
+}
+function adjRest(delta){
+  if(!restState) return;
+  restState.remaining = Math.max(0, restState.remaining + delta);
+  renderRest();
+  if(restState.remaining === 0) endRest();
+}
+function skipRest(){ endRest(); }
+function endRest(){
+  clearInterval(restTimer); restTimer = null;
+  playRestSound();
+  const cb = restState && restState.onDone; restState = null;
+  if(cb) cb();
+}
+function playRestSound(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = 880;
+    o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.5);
+    o.start(); o.stop(ctx.currentTime+0.55);
+  }catch(e){ /* audio indisponible, on garde au moins la vibration */ }
+  if(navigator.vibrate) navigator.vibrate([200,80,200]);
+}
 function validateSet(){
   const e = sess.exos[sess.idx];
+  const exo = exById(e.id);
   e.sets.push({reps:e.cur.reps, kg:e.cur.kg});
   const cue = CUES[Math.min(e.sets.length, CUES.length-1)];
   speak(cue.replace(/[👍🔥]/gu,''));
-  if(e.sets.length >= e.target.sets){ nextExo(); } else { renderSessExo(); }
+  startRest(restForType(exo.type), () => {
+    if(e.sets.length >= e.target.sets){ nextExo(); } else { renderSessExo(); }
+  });
 }
 function skipExo(){ nextExo(); }
 function nextExo(){
@@ -800,13 +861,40 @@ const FOODS = [
   {n:'Sandwich jambon-fromage', kcal:430, p:22, ico:'🥪'},{n:'Steak haché + haricots', kcal:520, p:46, ico:'🥩'},
   {n:'Shaker protéiné', kcal:180, p:30, ico:'🥤'},{n:'Poignée d\'amandes', kcal:170, p:6, ico:'🌰'},
   {n:'Pizza (entière)', kcal:890, p:34, ico:'🍕'},{n:'Banane', kcal:100, p:1, ico:'🍌'} ];
-$('foodgrid').innerHTML = FOODS.map((f,i)=>`<div class="food" onclick="addFood(${i})"><b>${f.ico} ${f.n}</b><span>${f.kcal} kcal · ${f.p} g prot</span></div>`).join('');
+let foodGridExpanded = false;
+function renderFoodGrid(){
+  const list = foodGridExpanded ? FOODS : FOODS.slice(0, 6);
+  $('foodgrid').innerHTML = list.map((f,i)=>`<div class="food" onclick="addFood(${i})"><b>${f.ico} ${f.n}</b><span>${f.kcal} kcal · ${f.p} g prot</span></div>`).join('');
+  $('foodgrid-more').textContent = foodGridExpanded ? 'Voir moins' : 'Voir plus d\'options';
+}
+function toggleFoodGrid(){ foodGridExpanded = !foodGridExpanded; renderFoodGrid(); }
+renderFoodGrid();
 function addFood(i){
   const f = FOODS[i];
   S.meals.push({d:today(), n:f.n, kcal:f.kcal, p:f.p});
   if(f.n.includes('Pizza')){ toast('Ajouté 🍕'); setTimeout(()=>{ go('coach'); coachSay(`Ça a l'air de te faire plaisir 😄. Un repas comme celui-ci ne remet pas en cause tous tes efforts — je l'ai compté (${f.kcal} kcal) et j'ajusterai demain en douceur.`); }, 400); }
   else toast(`Ajouté : ${f.kcal} kcal · ${f.p} g prot`);
   save(); render();
+}
+async function suggestMeal(){
+  const txt = $('nutri-coach');
+  txt.innerHTML = `<span class="typing"><i></i><i></i><i></i></span>`;
+  const kcalLeft = Math.max(0, S.kcalTarget - kcalToday());
+  const protLeft = Math.max(0, S.protTarget - protToday());
+  const message = `Propose-moi UN repas concret et réaliste (avec quantités approximatives, ex: "150g de poulet, 80g de riz cru...") qui correspond à ce qu'il me reste à manger aujourd'hui : environ ${kcalLeft} kcal et ${protLeft} g de protéines. Reste bref (3-4 phrases max), pas de liste à puces.`;
+  try{
+    const res = await fetch('/.netlify/functions/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ message, context:buildChatContext(), history:[] })
+    });
+    if(!res.ok) throw new Error('api-error');
+    const data = await res.json();
+    txt.textContent = data.reply || "Je n'ai pas pu générer de suggestion, réessaie dans un instant.";
+  }catch(e){
+    txt.textContent = protLeft > 0
+      ? `Il te reste ${protLeft} g de protéines et ${kcalLeft} kcal aujourd'hui. Un mélange poulet/œufs/poisson avec un féculent (riz, patate douce) devrait bien s'intégrer.`
+      : `Tes objectifs du jour sont atteints — si tu manges encore, privilégie du léger (légumes, protéines maigres).`;
+  }
 }
 function addCustomFood(){
   const v = $('food-custom').value.trim(); if(!v) return;
@@ -886,6 +974,52 @@ function confirmMealAdd(){
   closeOverlay(); save(); render(); toast('Repas ajouté ✓');
 }
 function closeOverlay(){ $('overlay').classList.remove('open'); OB.innerHTML=''; OBF.innerHTML=''; }
+
+/* ═════════════ MODIFIER LE PROFIL ═════════════ */
+function openProfileEdit(){
+  window._pe = { ...S.profile };
+  $('overlay').classList.add('open');
+  $('ov-head').textContent = 'MON PROFIL';
+  renderProfileEdit();
+}
+function renderProfileEdit(){
+  const p = window._pe;
+  const goals = [{l:'Perdre du poids',v:'perte'},{l:'Prendre du muscle',v:'muscle'},{l:'Être en forme',v:'forme'},{l:'Reprendre le sport',v:'reprise'}];
+  const levels = [{l:'Débutant',v:'deb'},{l:'Intermédiaire',v:'int'},{l:'Confirmé',v:'conf'}];
+  const places = [{l:'En salle',v:'salle'},{l:'Haltères',v:'halt'},{l:'Kettlebell',v:'kb'},{l:'Élastiques',v:'elastique'},{l:'Sans matériel',v:'none'}];
+  OB.innerHTML = `
+    <h2 style="margin-top:6px;">Objectif</h2>
+    <div class="chips">${goals.map(g=>`<button class="chip ${p.goal===g.v?'on':''}" onclick="pePick('goal','${g.v}')">${g.l}</button>`).join('')}</div>
+    <h2>Niveau</h2>
+    <div class="chips">${levels.map(g=>`<button class="chip ${p.level===g.v?'on':''}" onclick="pePick('level','${g.v}')">${g.l}</button>`).join('')}</div>
+    <h2>Matériel</h2>
+    <div class="chips">${places.map(g=>`<button class="chip ${p.place===g.v?'on':''}" onclick="pePick('place','${g.v}')">${g.l}</button>`).join('')}</div>
+    <h2>Séances par semaine</h2>
+    <div class="card"><div class="setline"><span class="lbl">Fréquence</span>
+      <div class="stepper" style="flex:1; justify-content:space-between;"><button onclick="peAdjNum('freq',-1,1,7)">−</button><span id="pe-freq">${p.freq}</span><button onclick="peAdjNum('freq',1,1,7)">+</button></div></div></div>
+    <h2>Infos</h2>
+    <div class="card">
+      <div class="setline"><span class="lbl">Âge</span>
+        <div class="stepper" style="flex:1; justify-content:space-between;"><button onclick="peAdjNum('age',-1,14,90)">−</button><span id="pe-age">${p.age}</span><button onclick="peAdjNum('age',1,14,90)">+</button></div></div>
+      <div class="setline"><span class="lbl">Taille</span>
+        <div class="stepper" style="flex:1; justify-content:space-between;"><button onclick="peAdjNum('height',-1,120,220)">−</button><span id="pe-height">${p.height} <small>cm</small></span><button onclick="peAdjNum('height',1,120,220)">+</button></div></div>
+    </div>`;
+  OBF.innerHTML = `<button class="btn primary" onclick="saveProfileEdit()">Enregistrer et régénérer mon programme</button>
+    <button class="btn ghost" style="margin-top:8px;" onclick="closeOverlay()">Annuler</button>`;
+}
+function pePick(field, val){ window._pe[field] = val; renderProfileEdit(); }
+function peAdjNum(field, delta, min, max){
+  window._pe[field] = Math.max(min, Math.min(max, window._pe[field]+delta));
+  if(field==='height') $('pe-height').innerHTML = window._pe[field]+' <small>cm</small>';
+  else $('pe-'+field).textContent = window._pe[field];
+}
+function saveProfileEdit(){
+  S.profile = { ...S.profile, ...window._pe };
+  S.plan = genPlan(S.profile);
+  S.nextDay = 0;
+  save(); closeOverlay(); render();
+  toast('Profil mis à jour, nouveau programme généré ✓');
+}
 
 /* ═════════════ POIDS ═════════════ */
 let wInputVal = 80;
