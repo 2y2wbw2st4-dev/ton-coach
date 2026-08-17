@@ -1,7 +1,7 @@
 // Netlify Function — authentification par email/mot de passe.
 // Stocke les comptes (email -> {salt, hash}) et les sessions (token -> email) dans Netlify Blobs.
 
-const { getStore } = require('@netlify/blobs');
+const { store: openStore } = require('./lib/blobs');
 const { hashPassword, verifyPassword, genToken } = require('./lib/auth-lib');
 
 const SESSION_TTL_MS = 90 * 24 * 60 * 60 * 1000; // 90 jours
@@ -22,8 +22,8 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Corps de requête invalide' }) };
   }
 
-  const usersStore = getStore({ name: 'users' });
-  const sessionsStore = getStore({ name: 'sessions' });
+  const usersStore = openStore('users');
+  const sessionsStore = openStore('sessions');
   const action = payload.action;
 
   if (action === 'register') {
@@ -76,5 +76,3 @@ exports.handler = async function (event) {
 
   return { statusCode: 400, body: JSON.stringify({ error: 'Action inconnue' }) };
 };
-
-    
