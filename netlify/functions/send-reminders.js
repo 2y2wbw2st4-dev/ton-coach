@@ -3,7 +3,7 @@
 // Programmée via `exports.config` ci-dessous (heure fixe, en UTC).
 
 const webpush = require('web-push');
-const { getStore } = require('@netlify/blobs');
+const { store: openStore } = require('./lib/blobs');
 
 exports.config = { schedule: '0 17 * * *' }; // ~18h-19h heure de Paris selon la saison
 
@@ -17,8 +17,8 @@ exports.handler = async function () {
   }
   webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
 
-  const subsStore = getStore({ name: 'push-subs' });
-  const backupsStore = getStore({ name: 'coach-backups' });
+  const subsStore = openStore('push-subs');
+  const backupsStore = openStore('coach-backups');
 
   const { blobs } = await subsStore.list();
   let sent = 0, cleaned = 0;
@@ -33,7 +33,6 @@ exports.handler = async function () {
       const lastSession = data?.sessions?.length ? data.sessions[data.sessions.length - 1].date : null;
       const daysSince = lastSession ? Math.floor((Date.now() - new Date(lastSession).getTime()) / 864e5) : 99;
 
-      // On ne relance que si pas de séance depuis au moins 1 jour plein.
       if (daysSince < 1) continue;
 
       const body = daysSince >= 3
@@ -43,7 +42,6 @@ exports.handler = async function () {
       await webpush.sendNotification(subscription, JSON.stringify({ title: 'Ton Coach', body }));
       sent++;
     } catch (err) {
-      // Abonnement expiré ou invalide : on le supprime pour ne plus réessayer.
       if (err.statusCode === 404 || err.statusCode === 410) {
         await subsStore.delete(email);
         cleaned++;
