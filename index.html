@@ -5,19 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Ton Coach</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#F7F6FC">
+<meta name="theme-color" content="#F3EFE6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Coach">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#F7F6FC; --surface:#FFFFFF; --surface2:#F2F0FA; --line:#EBE8F7;
-    --ink:#171532; --ink2:#6E6B87; --ink3:#9C98B4;
+    --bg:#F3EFE6; --surface:#FBF9F4; --surface2:#ECE5D6; --line:#DDD3BE;
+    --ink:#2B2620; --ink2:#6E6455; --ink3:#928A78;
     --accent:#6C5CE7; --accent-ink:#FFFFFF;
-    --coral:#FF6B6B; --blue:#4C8DFF; --green:#2FBF76;
-    --shadow:0 1px 2px rgba(23,21,50,.04), 0 10px 24px -14px rgba(23,21,50,.14);
+    --coral:#E0604C; --blue:#4C7FDB; --green:#2FA36C; --gold:#B8894F;
+    --shadow:0 1px 2px rgba(43,38,32,.05), 0 8px 20px -14px rgba(43,38,32,.18);
     --radius:20px; font-size:16px;
   }
   *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
@@ -29,7 +32,7 @@
   }
   .screen{flex:1; overflow-y:auto; overflow-x:hidden; scrollbar-width:none; position:relative; padding-top:10px;}
   .screen::-webkit-scrollbar{display:none;}
-  .tabbar{flex:none; display:flex; border-top:1px solid var(--line); background:rgba(255,255,255,.96); padding:10px 8px calc(12px + env(safe-area-inset-bottom));}
+  .tabbar{flex:none; display:flex; border-top:1px solid var(--line); background:rgba(251,249,244,.94); padding:10px 8px calc(12px + env(safe-area-inset-bottom));}
   .tabbar button{flex:1; background:none; border:none; color:var(--ink3); font-family:inherit; font-size:.68rem; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;}
   .tabbar button .ico{font-size:1.35rem; line-height:1; filter:grayscale(1) opacity(.55); transition:filter .2s, transform .2s;}
   .tabbar button.active{color:var(--accent);}
@@ -37,21 +40,21 @@
   section.tab{display:none; padding:6px 20px 30px; animation:fadein .25s ease;}
   section.tab.active{display:block;}
   @keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
-  h1{font-size:1.42rem; font-weight:700; letter-spacing:-.02em;}
-  h2{font-size:.78rem; text-transform:uppercase; letter-spacing:.12em; color:var(--ink3); margin:24px 0 10px; font-weight:600;}
-  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-bottom:12px; box-shadow:var(--shadow);}
+  h1{font-family:'Space Grotesk',sans-serif; font-size:1.5rem; font-weight:700; letter-spacing:-.02em;}
+  h2{font-family:'Space Grotesk',sans-serif; font-size:.7rem; text-transform:uppercase; letter-spacing:.14em; color:var(--ink3); margin:18px 0 8px; font-weight:600;}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:13px; margin-bottom:9px; box-shadow:var(--shadow);}
   .muted{color:var(--ink2); font-size:.88rem; line-height:1.5;}
   .tiny{color:var(--ink3); font-size:.74rem;}
   .coach-row{display:flex; gap:10px; margin:10px 0; align-items:flex-start;}
-  .coach-dot{width:34px;height:34px;flex:none;border-radius:50%;background:url('assets/coach-avatar.png') center/cover, radial-gradient(circle at 35% 30%,#9C8DF7,#6C5CE7);box-shadow:0 4px 14px rgba(108,92,231,.35);}
+  .coach-dot{width:34px;height:34px;flex:none;border-radius:50%;background:url('assets/coach-avatar.png') center/cover, radial-gradient(circle at 35% 30%,#9C8DF7,#6C5CE7);box-shadow:0 4px 14px rgba(139,124,246,.35), 0 0 0 1.5px var(--gold);}
   .coach-dot.small{width:26px;height:26px;}
   .bubble{background:var(--surface2); border:1px solid var(--line); border-radius:4px 18px 18px 18px; padding:11px 14px; font-size:.92rem; line-height:1.5; max-width:85%;}
-  .bubble.user{margin-left:auto; border-radius:18px 4px 18px 18px; background:#EDE9FB; border-color:#DDD6F7; color:var(--ink);}
+  .bubble.user{margin-left:auto; border-radius:18px 4px 18px 18px; background:#E9E1F5; border-color:#D9CDF0; color:var(--ink);}
   .typing{display:inline-flex; gap:4px; padding:4px 2px;}
   .typing i{width:6px;height:6px;border-radius:50%;background:var(--ink3);animation:blink 1s infinite;}
   .typing i:nth-child(2){animation-delay:.2s;} .typing i:nth-child(3){animation-delay:.4s;}
   @keyframes blink{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
-  .btn{display:block;width:100%;border:none;border-radius:16px;padding:15px;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;transition:transform .12s;}
+  .btn{display:block;width:100%;border:none;border-radius:16px;padding:15px;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;letter-spacing:-.01em;cursor:pointer;transition:transform .12s;}
   .btn:active{transform:scale(.97);}
   .btn.primary{background:linear-gradient(135deg,#7C6EF2,#6C5CE7); color:var(--accent-ink); box-shadow:0 8px 26px rgba(108,92,231,.32);}
   .btn.ghost{background:var(--surface2); color:var(--ink); border:1px solid var(--line); font-weight:600; font-size:.9rem; padding:12px;}
@@ -59,12 +62,12 @@
   .chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
   .chip{background:var(--surface2); border:1px solid var(--line); color:var(--ink); border-radius:999px; padding:9px 14px; font-family:inherit; font-size:.84rem; cursor:pointer;}
   .chip:active{border-color:var(--accent);}
-  .chip.on{border-color:var(--accent); background:#EDE9FB; color:var(--accent);}
+  .chip.on{border-color:var(--accent); background:#E9E1F5; color:var(--accent);}
   .statrow{display:flex; gap:10px;}
   .stat{flex:1; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:12px; box-shadow:var(--shadow);}
-  .stat b{display:block; font-size:1.1rem; letter-spacing:-.02em;}
+  .stat b{display:block; font-family:'Space Grotesk',sans-serif; font-size:1.15rem; font-weight:700; letter-spacing:-.02em;}
   .stat span{font-size:.65rem; color:var(--ink3); text-transform:uppercase; letter-spacing:.08em;}
-  .bar{height:6px; border-radius:3px; background:#EDEBF7; margin-top:8px; overflow:hidden;}
+  .bar{height:6px; border-radius:3px; background:var(--surface2); margin-top:8px; overflow:hidden;}
   .bar i{display:block; height:100%; border-radius:3px; background:var(--accent); transition:width .4s;}
   .bar i.coral{background:var(--coral);}
   .exo{display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line);}
@@ -107,7 +110,7 @@
   .record .up{margin-left:auto; color:var(--accent); font-size:.8rem; font-weight:600; text-align:right;}
   .toggle{display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-bottom:1px solid var(--line); font-size:.9rem; gap:10px;}
   .toggle:last-child{border:none;}
-  .sw{width:46px;height:26px;border-radius:999px;background:#E3E0F2;position:relative;cursor:pointer;transition:background .2s;flex:none;}
+  .sw{width:46px;height:26px;border-radius:999px;background:#DDD3BE;position:relative;cursor:pointer;transition:background .2s;flex:none;}
   .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(23,21,50,.25);transition:left .2s;}
   .sw.on{background:var(--accent);}
   .sw.on::after{left:23px;}
@@ -117,15 +120,15 @@
   .ring svg{transform:rotate(-90deg);}
   .qrow{display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); cursor:pointer;}
   .qrow:last-child{border-bottom:none;}
-  .qrow-ico{width:40px;height:40px;flex:none;border-radius:13px;background:#EEEBFB;display:flex;align-items:center;justify-content:center;font-size:1.15rem;}
-  .qrow-ico.green{background:#E8F7EE;}
+  .qrow-ico{width:40px;height:40px;flex:none;border-radius:13px;background:#E9E1F5;display:flex;align-items:center;justify-content:center;font-size:1.15rem;}
+  .qrow-ico.green{background:#E1F0E6;}
   .qrow-txt{flex:1; min-width:0;}
   .qrow-txt span{display:block; font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink3);}
   .qrow-txt b{display:block; font-size:.92rem; font-weight:700; margin-top:1px;}
   .qrow-chev{color:var(--ink3); font-size:1.3rem;}
-  .quickgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
-  .qcell{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:14px 4px; text-align:center; font-size:.72rem; color:var(--ink2); box-shadow:var(--shadow); cursor:pointer;}
-  .qcell span{display:block; font-size:1.3rem; margin-bottom:6px;}
+  .quickgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:6px;}
+  .qcell{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:10px 4px; text-align:center; font-size:.66rem; color:var(--ink2); box-shadow:var(--shadow); cursor:pointer;}
+  .qcell span{display:block; font-size:.95rem; margin-bottom:3px;}
   .ring .c{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
   .ring .c b{font-size:1.2rem;}
   .ring .c span{font-size:.6rem; color:var(--ink3);}
@@ -144,22 +147,22 @@
       <div class="coach-dot pulse"></div>
       <div><h1 id="greet"></h1><p class="tiny" id="greet-sub"></p></div>
     </div>
-    <div class="card" style="margin-top:14px;">
-      <p style="font-size:1rem; line-height:1.55;" id="home-msg"></p>
-      <p class="muted" style="margin-top:8px;" id="home-why"></p>
+    <div class="card" style="margin-top:10px;">
+      <p style="font-size:1rem; line-height:1.5;" id="home-msg"></p>
+      <p class="muted" style="margin-top:6px;" id="home-why"></p>
       <div class="chips" id="home-chips"></div>
-      <p class="muted" id="quick-answer" style="margin-top:10px; display:none;"></p>
+      <p class="muted" id="quick-answer" style="margin-top:8px; display:none;"></p>
     </div>
     <button class="btn primary" id="home-cta" onclick="openSession()">Commencer la séance</button>
 
     <h2>Ta transformation</h2>
     <div class="card">
       <div class="statrow" id="home-stats"></div>
-      <div id="home-spark" style="margin-top:14px;"></div>
+      <div id="home-spark" style="margin-top:8px;"></div>
     </div>
 
     <h2>Aujourd'hui</h2>
-    <div class="card" style="padding:6px 16px;">
+    <div class="card" style="padding:4px 14px;">
       <div class="qrow" onclick="go('training')">
         <div class="qrow-ico">🏋️</div>
         <div class="qrow-txt"><span>Entraînement</span><b id="qrow-training"></b></div>
@@ -172,81 +175,17 @@
       </div>
     </div>
 
-    <h2>Message du coach</h2>
-    <div class="card coach-row"><div class="coach-dot small"></div><p class="muted" style="font-size:.9rem;" id="daily-tip"></p></div>
-
     <h2>Accès rapides</h2>
     <div class="quickgrid">
       <div class="qcell" onclick="openSession()"><span>🏋️</span>Séance</div>
-      <div class="qcell" onclick="go('coach')"><span>📈</span>Progrès</div>
       <div class="qcell" onclick="go('training')"><span>📅</span>Programme</div>
-      <div class="qcell" onclick="go('coach')"><span>💬</span>Mon coach</div>
     </div>
-  </section>
 
-  <!-- 🏋️ ENTRAÎNEMENT -->
-  <section class="tab" id="tab-training">
-    <h1 style="margin:8px 0 2px;">Entraînement</h1>
-    <p class="tiny" id="plan-sub"></p>
-    <div class="card" style="margin-top:16px;">
-      <div style="display:flex; justify-content:space-between; align-items:baseline;">
-        <b id="sess-title"></b><span class="tiny" id="sess-dur"></span>
-      </div>
-      <p class="tiny" id="sess-note" style="margin:4px 0 6px;"></p>
-      <div id="exo-list"></div>
-      <button class="btn primary" style="margin-top:12px;" onclick="openSession()">Lancer la séance</button>
-    </div>
-    <h2>Historique</h2>
-    <div class="card" id="history"><p class="muted">Aucune séance pour l'instant — la première t'attend. 💪</p></div>
-  </section>
-
-  <!-- 🍽️ NUTRITION -->
-  <section class="tab" id="tab-nutrition">
-    <h1 style="margin:8px 0 2px;">Nutrition</h1>
-    <p class="tiny">Le coach calcule, tu profites</p>
-    <div class="card" style="display:flex; gap:16px; align-items:center; margin-top:16px;">
-      <div class="ring">
-        <svg width="110" height="110" viewBox="0 0 110 110">
-          <circle cx="55" cy="55" r="47" fill="none" stroke="#EDEBF7" stroke-width="9"/>
-          <circle id="kcal-ring" cx="55" cy="55" r="47" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="295" stroke-dashoffset="295"/>
-        </svg>
-        <div class="c"><b id="kcal-val">0</b><span id="kcal-target"></span></div>
-      </div>
-      <div style="flex:1">
-        <p class="muted" style="font-size:.85rem;">Protéines <b style="color:var(--ink)" id="prot-val"></b></p>
-        <div class="bar"><i class="coral" id="prot-bar" style="width:0%"></i></div>
-        <p class="tiny" style="margin-top:8px;" id="kcal-left"></p>
-      </div>
-    </div>
-    <div class="card coach-row"><div class="coach-dot small"></div><p class="muted" style="font-size:.88rem;" id="nutri-coach"></p></div>
-    <button class="btn ghost" style="margin-top:8px;" onclick="suggestMeal()">💡 Suggestion de repas</button>
-    <h2>Ajouter un repas</h2>
-    <div class="foodgrid" id="foodgrid"></div>
-    <button class="btn ghost" id="foodgrid-more" style="margin-top:10px;" onclick="toggleFoodGrid()">Voir plus d'options</button>
-    <div class="ob-text-input" style="margin-top:10px;">
-      <input id="food-custom" placeholder="Autre… ex: Lasagnes 650 kcal 30 prot">
-      <button onclick="document.getElementById('meal-photo').click()" style="background:var(--surface2); color:var(--ink);" title="Photo">📷</button>
-      <button onclick="addCustomFood()">➤</button>
-    </div>
-    <input type="file" id="meal-photo" accept="image/*" capture="environment" style="display:none" onchange="analyzeMealPhoto(event)">
-    <h2>Repas du jour</h2>
-    <div class="card" id="meals-today"><p class="muted">Rien d'enregistré aujourd'hui.</p></div>
-  </section>
-
-  <!-- 🤖 MON COACH -->
-  <section class="tab" id="tab-coach">
-    <h1 style="margin:8px 0 2px;">Mon Coach</h1>
-    <p class="tiny">Ta progression, votre histoire, vos échanges</p>
-    <h2>Discuter</h2>
+    <h2>Discuter avec ton coach</h2>
     <div id="chatlog"></div>
     <div class="chat-input">
       <input id="chat-in" placeholder="Écris à ton coach…" onkeydown="if(event.key==='Enter')sendChat()">
       <button onclick="sendChat()">➤</button>
-    </div>
-    <div class="chips" style="margin-top:2px;">
-      <button class="chip" onclick="preset('Je suis fatigué aujourd\'hui')">Je suis fatigué</button>
-      <button class="chip" onclick="preset('Pourquoi ces choix ?')">Pourquoi ?</button>
-      <button class="chip" onclick="preset('Comment évolue mon poids ?')">Mon poids</button>
     </div>
     <h2>Poids</h2>
     <div class="card">
@@ -285,6 +224,53 @@
     <button class="btn danger" onclick="resetAll()">Réinitialiser l'application</button>
     <p class="tiny" style="text-align:center; margin-top:10px;">V1 — moteur de coaching local · nom &amp; identité provisoires</p>
   </section>
+
+  <!-- 🏋️ ENTRAÎNEMENT -->
+  <section class="tab" id="tab-training">
+    <h1 style="margin:8px 0 2px;">Entraînement</h1>
+    <p class="tiny" id="plan-sub"></p>
+    <div class="card" style="margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline;">
+        <b id="sess-title"></b><span class="tiny" id="sess-dur"></span>
+      </div>
+      <p class="tiny" id="sess-note" style="margin:4px 0 6px;"></p>
+      <div id="exo-list"></div>
+      <button class="btn primary" style="margin-top:12px;" onclick="openSession()">Lancer la séance</button>
+    </div>
+    <h2>Historique</h2>
+    <div class="card" id="history"><p class="muted">Aucune séance pour l'instant — la première t'attend. 💪</p></div>
+  </section>
+
+  <!-- 🍽️ NUTRITION -->
+  <section class="tab" id="tab-nutrition">
+    <h1 style="margin:8px 0 2px;">Nutrition</h1>
+    <p class="tiny">Le coach calcule, tu profites</p>
+    <div class="card" style="display:flex; gap:16px; align-items:center; margin-top:16px;">
+      <div class="ring">
+        <svg width="110" height="110" viewBox="0 0 110 110">
+          <circle cx="55" cy="55" r="47" fill="none" stroke="#E5DDC8" stroke-width="9"/>
+          <circle id="kcal-ring" cx="55" cy="55" r="47" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="295" stroke-dashoffset="295"/>
+        </svg>
+        <div class="c"><b id="kcal-val">0</b><span id="kcal-target"></span></div>
+      </div>
+      <div style="flex:1">
+        <p class="muted" style="font-size:.85rem;">Protéines <b style="color:var(--ink)" id="prot-val"></b></p>
+        <div class="bar"><i class="coral" id="prot-bar" style="width:0%"></i></div>
+        <p class="tiny" style="margin-top:8px;" id="kcal-left"></p>
+      </div>
+    </div>
+    <div class="card coach-row"><div class="coach-dot small"></div><p class="muted" style="font-size:.88rem;" id="nutri-coach"></p></div>
+    <button class="btn ghost" style="margin-top:8px;" onclick="suggestMeal()">💡 Suggestion de repas</button>
+    <h2>Ajouter un repas</h2>
+    <button class="btn primary" onclick="document.getElementById('meal-photo').click()">📷 Photographier mon repas</button>
+    <div class="ob-text-input" style="margin-top:10px;">
+      <input id="food-custom" placeholder="Ou décris-le… ex: Lasagnes 650 kcal 30 prot">
+      <button onclick="addCustomFood()">➤</button>
+    </div>
+    <input type="file" id="meal-photo" accept="image/*" capture="environment" style="display:none" onchange="analyzeMealPhoto(event)">
+    <h2>Repas du jour</h2>
+    <div class="card" id="meals-today"><p class="muted">Rien d'enregistré aujourd'hui.</p></div>
+  </section>
 </div>
 
 <!-- ═════ OVERLAY (onboarding + séance) ═════ -->
@@ -298,7 +284,6 @@
   <button class="active" data-tab="accueil"><span class="ico">🏠</span>Accueil</button>
   <button data-tab="training"><span class="ico">🏋️</span>Entraînement</button>
   <button data-tab="nutrition"><span class="ico">🍽️</span>Nutrition</button>
-  <button data-tab="coach"><span class="ico">🤖</span>Mon Coach</button>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -455,6 +440,34 @@ function genPlan(p){
   });
   return {days, freq:p.freq};
 }
+/* Régénère uniquement la séance du jour courant avec un nouveau focus (sans toucher au reste du programme). */
+function regenerateTodayDay(focus){
+  const p = S.profile;
+  const nEx = p.time===30?4 : p.time===45?5 : 6;
+  const sets = p.level==='deb'?3:4;
+  const reps = p.goal==='muscle' ? [8,12] : [10,15];
+  const lvlIdx = {deb:0,int:1,conf:2}[p.level];
+  const eqKey = p.place==='salle'?'salle': ['halt','kb','elastique'].includes(p.place)?'halt':'none';
+  const excluded = z => (p.injury && p.injury===z) || (S.painZone && S.painZone.z===z);
+  const tpl = {
+    full:  ['jambes','pecs','dos','epaules','core','bras'],
+    upper: ['pecs','dos','epaules','bras','core','pecs'],
+    lower: ['jambes','jambes','jambes','core','cardio','core'] };
+  const labels = {full:'Corps complet', upper:'Haut du corps', lower:'Bas du corps'};
+  const di = S.nextDay % S.plan.days.length;
+  const used = new Set();
+  const exos = [];
+  for(const z of tpl[focus]){
+    if(exos.length>=nEx) break;
+    const cands = EX.filter(e=>e.z===z && e.eq.includes(eqKey) && !used.has(e.id) && !(e.risk && excluded(e.risk)));
+    if(!cands.length) continue;
+    const pick = cands[(di + exos.length) % cands.length];
+    used.add(pick.id);
+    if(!(pick.id in S.progress)) S.progress[pick.id] = {v: pick.base[lvlIdx]};
+    exos.push({id:pick.id, sets, repsMin:reps[0], repsMax:reps[1]});
+  }
+  S.plan.days[di] = {label:`Séance ${'ABCDEFG'[di]} — ${labels[focus]} (ajustée)`, focus, exos};
+}
 
 /* ═════════════ MOTEUR : progression ═════════════ */
 function applyProgression(session){
@@ -557,7 +570,7 @@ function render(){
     <button class="chip" onclick="quick('plustard')">🕐 Plus tard</button>
     <button class="chip" onclick="quick('fatigue')">😮‍💨 Je suis fatigué</button>` : `
     <button class="chip" onclick="go('nutrition')">🍽️ Voir mes repas</button>
-    <button class="chip" onclick="go('coach')">💬 Parler au coach</button>`;
+    <button class="chip" onclick="go('accueil')">💬 Parler au coach</button>`;
 
   /* — stats du jour — */
   const lw = lastWeight();
@@ -566,14 +579,6 @@ function render(){
     <div class="stat"><span>Calories</span><b>${kcalToday()} <small class="tiny">/ ${S.kcalTarget}</small></b><div class="bar"><i style="width:${Math.min(100,kcalToday()/S.kcalTarget*100)}%"></i></div></div>
     <div class="stat"><span>Protéines</span><b>${protToday()} g <small class="tiny">/ ${S.protTarget}</small></b><div class="bar"><i class="coral" style="width:${Math.min(100,protToday()/S.protTarget*100)}%"></i></div></div>
     <div class="stat"><span>Poids</span><b>${lw?fmtKg(lw.kg)+' kg':'—'}</b><p class="tiny" style="margin-top:6px;">${trend||'pèse-toi 1×/sem.'}</p></div>`;
-
-  const tips = [
-    `S'il n'y avait qu'une chose à retenir aujourd'hui : <b style="color:var(--ink)">soigne la qualité d'exécution</b> sur tes premières séries.`,
-    `Cette semaine, on ne change <b style="color:var(--ink)">qu'une seule habitude</b> à la fois. C'est comme ça qu'on tient sur la durée.`,
-    `Bois un grand verre d'eau maintenant. Le plus petit changement, le plus grand impact. 💧`,
-    `Ton sommeil est ton meilleur partenaire d'entraînement. Vise l'heure de coucher régulière ce soir.`,
-    `La régularité bat l'intensité. Une séance moyenne faite vaut mieux qu'une séance parfaite ratée.`];
-  $('daily-tip').innerHTML = tips[new Date().getDate() % tips.length];
 
   /* — carte "Aujourd'hui" (raccourcis entraînement / nutrition) — */
   $('qrow-training').textContent = gap===0 ? 'Séance faite aujourd\'hui ✓' : `${day.label.split('— ')[1]||day.label} · ${p.time} min`;
@@ -721,7 +726,7 @@ function renderSessExo(){
   const unit = e.type==='w'?'kg': e.type==='t'?'s':'reps';
   $('ov-body').innerHTML = `
     <div style="text-align:center; margin:20px 0 4px;">
-      ${imgSrc ? `<img src="${imgSrc}" alt="${e.name}" style="width:100%; max-width:320px; border-radius:20px; margin-bottom:12px; box-shadow:var(--shadow);">` : `<div style="font-size:3rem; margin-bottom:4px;">${exo.ico}</div>`}
+      ${imgSrc ? `<img src="${imgSrc}" alt="${e.name}" style="width:130px; height:130px; object-fit:cover; border-radius:16px; margin-bottom:10px; box-shadow:var(--shadow);">` : `<div style="font-size:2.2rem; margin-bottom:4px;">${exo.ico}</div>`}
       <h1>${e.name}</h1>
       <p class="muted">${e.target.sets} séries · objectif ${e.type==='w'? e.target.reps+' reps à '+fmtKg(e.target.v)+' kg' : e.target.v+' '+unit}</p></div>
     <div id="done-sets" style="text-align:center; min-height:26px;" class="tiny">${e.sets.map((s,i)=>`S${i+1}: ${s.reps}${e.type==='w'?' × '+fmtKg(s.kg)+' kg':''}`).join(' · ')}</div>
@@ -751,7 +756,7 @@ function renderRest(){
   $('ov-body').innerHTML = `
     <div style="text-align:center; margin-top:50px;">
       <div class="tiny" style="text-transform:uppercase; letter-spacing:.08em;">Récupération</div>
-      <div style="font-size:4.2rem; font-weight:800; letter-spacing:-.02em; margin-top:6px;">${restState.remaining}s</div>
+      <div style="font-family:'Space Grotesk',sans-serif; font-size:4.2rem; font-weight:700; letter-spacing:-.03em; margin-top:6px;">${restState.remaining}s</div>
       <div class="coach-row" style="justify-content:center; margin-top:24px;"><div class="coach-dot small"></div><div class="bubble">Souffle, hydrate-toi, prépare ta prochaine série.</div></div>
     </div>`;
   $('ov-foot').innerHTML = `
@@ -797,6 +802,11 @@ function playRestSound(){
     o.start(); o.stop(ctx.currentTime+0.55);
   }catch(e){ /* audio indisponible, on garde au moins la vibration */ }
   if(navigator.vibrate) navigator.vibrate([200,80,200]);
+  if('serviceWorker' in navigator && 'Notification' in window && Notification.permission === 'granted'){
+    navigator.serviceWorker.ready.then(reg => {
+      reg.showNotification('Repos terminé 💪', { body: "C'est reparti pour la série suivante.", icon: './icon-192.png', tag:'rest-done' });
+    }).catch(()=>{});
+  }
 }
 function validateSet(){
   const e = sess.exos[sess.idx];
@@ -843,7 +853,7 @@ function saveSession(){
   else if(S.painZone && daysSince(S.painZone.d)>=4){ S.painZone = null; }
   S.nextDay++;
   $('overlay').classList.remove('open');
-  save(); render(); go('coach');
+  save(); render(); go('accueil');
   let m;
   if(sessPain) m = `Merci de me l'avoir dit. Je retire les mouvements qui sollicitent ${labels[sessPain]} de tes prochaines séances, et on surveille ensemble. Si ça persiste plus de quelques jours, vois un professionnel de santé — la santé passe toujours avant la performance.`;
   else if(progMsgs.length) m = `Belle séance (${sessDiff}/10). ${progMsgs[0]} C'est comme ça qu'on progresse : petit pas, mais toutes les semaines.`;
@@ -854,28 +864,6 @@ function saveSession(){
 }
 
 /* ═════════════ NUTRITION ═════════════ */
-const FOODS = [
-  {n:'Poulet rôti + riz + légumes', kcal:640, p:52, ico:'🍗'},{n:'Omelette 3 œufs + pain', kcal:450, p:28, ico:'🍳'},
-  {n:'Saumon + patates douces', kcal:590, p:40, ico:'🐟'},{n:'Salade César poulet', kcal:520, p:35, ico:'🥗'},
-  {n:'Yaourt grec + fruits', kcal:220, p:18, ico:'🥣'},{n:'Pâtes bolognaise', kcal:680, p:32, ico:'🍝'},
-  {n:'Sandwich jambon-fromage', kcal:430, p:22, ico:'🥪'},{n:'Steak haché + haricots', kcal:520, p:46, ico:'🥩'},
-  {n:'Shaker protéiné', kcal:180, p:30, ico:'🥤'},{n:'Poignée d\'amandes', kcal:170, p:6, ico:'🌰'},
-  {n:'Pizza (entière)', kcal:890, p:34, ico:'🍕'},{n:'Banane', kcal:100, p:1, ico:'🍌'} ];
-let foodGridExpanded = false;
-function renderFoodGrid(){
-  const list = foodGridExpanded ? FOODS : FOODS.slice(0, 6);
-  $('foodgrid').innerHTML = list.map((f,i)=>`<div class="food" onclick="addFood(${i})"><b>${f.ico} ${f.n}</b><span>${f.kcal} kcal · ${f.p} g prot</span></div>`).join('');
-  $('foodgrid-more').textContent = foodGridExpanded ? 'Voir moins' : 'Voir plus d\'options';
-}
-function toggleFoodGrid(){ foodGridExpanded = !foodGridExpanded; renderFoodGrid(); }
-renderFoodGrid();
-function addFood(i){
-  const f = FOODS[i];
-  S.meals.push({d:today(), n:f.n, kcal:f.kcal, p:f.p});
-  if(f.n.includes('Pizza')){ toast('Ajouté 🍕'); setTimeout(()=>{ go('coach'); coachSay(`Ça a l'air de te faire plaisir 😄. Un repas comme celui-ci ne remet pas en cause tous tes efforts — je l'ai compté (${f.kcal} kcal) et j'ajusterai demain en douceur.`); }, 400); }
-  else toast(`Ajouté : ${f.kcal} kcal · ${f.p} g prot`);
-  save(); render();
-}
 async function suggestMeal(){
   const txt = $('nutri-coach');
   txt.innerHTML = `<span class="typing"><i></i><i></i><i></i></span>`;
@@ -1143,8 +1131,13 @@ function applyCoachAction(reply){
     if(action[key] && allowed[key].includes(action[key])){ S.profile[key] = action[key]; changed = true; }
   }
   if(Number.isInteger(action.freq) && action.freq>=1 && action.freq<=7){ S.profile.freq = action.freq; changed = true; }
-  if(changed){ S.plan = genPlan(S.profile); S.nextDay = 0; save(); toast('Ton programme a été mis à jour ✓'); }
-  return changed;
+  if(changed){ S.plan = genPlan(S.profile); S.nextDay = 0; save(); toast('Ton programme a été mis à jour ✓'); return true; }
+  if(['upper','lower','full'].includes(action.todayFocus)){
+    regenerateTodayDay(action.todayFocus);
+    save(); toast('Ta séance du jour a été changée ✓');
+    return true;
+  }
+  return false;
 }
 
 /* ═════════════ RÉGLAGES ═════════════ */
