@@ -1124,9 +1124,27 @@ async function coachReplyAI(userText){
     aiFailed = true;
     reply = replyTo(userText); // repli local si l'IA est indisponible (hors ligne, quota, etc.)
   }
+  const planChanged = applyCoachAction(reply);
+  reply = reply.replace(/<<ACTION:.*?>>/s, '').trim();
   S.chat.push({who:'c', t:reply}); S.chat = S.chat.slice(-20); save();
-  let i=0; const t=setInterval(()=>{ bubble.textContent = reply.slice(0,++i); if(i>=reply.length){clearInterval(t); chatScroll();} }, 12);
+  let i=0; const t=setInterval(()=>{ bubble.textContent = reply.slice(0,++i); if(i>=reply.length){clearInterval(t); chatScroll(); if(planChanged) render();} }, 12);
   if(aiFailed) console.warn('Coach IA indisponible, réponse de secours utilisée.');
+}
+/* Analyse la réponse du coach pour une éventuelle action de modification de profil,
+   au format caché <<ACTION:{"place":"none"}>>. Retourne true si le programme a été régénéré. */
+function applyCoachAction(reply){
+  const m = reply.match(/<<ACTION:(\{.*?\})>>/s);
+  if(!m) return false;
+  let action;
+  try{ action = JSON.parse(m[1]); }catch(e){ return false; }
+  const allowed = { place:['salle','halt','kb','elastique','none'], goal:['perte','muscle','forme','reprise'], level:['deb','int','conf'] };
+  let changed = false;
+  for(const key of ['place','goal','level']){
+    if(action[key] && allowed[key].includes(action[key])){ S.profile[key] = action[key]; changed = true; }
+  }
+  if(Number.isInteger(action.freq) && action.freq>=1 && action.freq<=7){ S.profile.freq = action.freq; changed = true; }
+  if(changed){ S.plan = genPlan(S.profile); S.nextDay = 0; save(); toast('Ton programme a été mis à jour ✓'); }
+  return changed;
 }
 
 /* ═════════════ RÉGLAGES ═════════════ */
