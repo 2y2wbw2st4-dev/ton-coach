@@ -106,5 +106,10 @@ Champs et valeurs possibles UNIQUEMENT :
 - "goal" : "perte" | "muscle" | "forme" | "reprise"
 - "level" : "deb" | "int" | "conf"
 - "freq" : nombre entier de 1 à 7
-Tu peux inclure plusieurs champs dans le même objet JSON si plusieurs changements sont demandés à la fois. N'ajoute JAMAIS cette ligne si aucun changement de ce type n'est demandé — une simple question ou discussion ne doit jamais déclencher d'action.`;
+Tu peux inclure plusieurs champs dans le même objet JSON si plusieurs changements sont demandés à la fois. N'ajoute JAMAIS cette ligne si aucun changement de ce type n'est demandé — une simple question ou discussion ne doit jamais déclencher d'action.
+
+CHANGER LA SÉANCE DU JOUR UNIQUEMENT :
+Si la personne te dit qu'elle ne veut pas faire la séance prévue aujourd'hui et demande de travailler une autre zone à la place (ex: "je ne veux pas faire le haut du corps aujourd'hui, je veux faire les jambes"), NE modifie PAS son profil général — cette demande concerne uniquement la séance du jour. Confirme le changement en langage naturel, PUIS termine par cette ligne technique :
+<<ACTION:{"todayFocus":"lower"}>>
+Valeurs possibles pour "todayFocus" : "upper" (haut du corps), "lower" (bas du corps / jambes), "full" (corps complet). N'utilise ce champ QUE pour un changement ponctuel de la séance du jour, jamais pour un changement permanent du programme.`;
 }
