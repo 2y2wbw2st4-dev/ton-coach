@@ -98,7 +98,7 @@
   .meal-item{display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--line); font-size:.88rem;}
   .meal-item:last-child{border:none;}
   .meal-item .x{color:var(--ink3); cursor:pointer; padding:4px 8px;}
-  #chatlog{display:flex; flex-direction:column; margin-bottom:8px;}
+  #chatlog{display:flex; flex-direction:column; gap:2px; margin-bottom:0; max-height:340px; overflow-y:auto; padding:4px; background:var(--surface2); border-radius:14px; scroll-behavior:smooth;}
   .chat-input{display:flex; gap:8px; padding:8px 0 2px;}
   .chat-input input{flex:1; background:var(--surface2); border:1px solid var(--line); border-radius:999px; color:var(--ink); padding:12px 16px; font-family:inherit; font-size:.9rem; outline:none;}
   .chat-input input:focus{border-color:var(--accent);}
@@ -147,6 +147,8 @@
       <div class="coach-dot pulse"></div>
       <div><h1 id="greet"></h1><p class="tiny" id="greet-sub"></p></div>
     </div>
+
+    <!-- ═══ NIVEAU 1 : l'essentiel, tout de suite ═══ -->
     <div class="card" style="margin-top:10px;">
       <p style="font-size:1rem; line-height:1.5;" id="home-msg"></p>
       <p class="muted" style="margin-top:6px;" id="home-why"></p>
@@ -154,12 +156,6 @@
       <p class="muted" id="quick-answer" style="margin-top:8px; display:none;"></p>
     </div>
     <button class="btn primary" id="home-cta" onclick="openSession()">Commencer la séance</button>
-
-    <h2>Ta transformation</h2>
-    <div class="card">
-      <div class="statrow" id="home-stats"></div>
-      <div id="home-spark" style="margin-top:8px;"></div>
-    </div>
 
     <h2>Aujourd'hui</h2>
     <div class="card" style="padding:4px 14px;">
@@ -175,54 +171,64 @@
       </div>
     </div>
 
-    <h2>Accès rapides</h2>
-    <div class="quickgrid">
-      <div class="qcell" onclick="openSession()"><span>🏋️</span>Séance</div>
-      <div class="qcell" onclick="go('training')"><span>📅</span>Programme</div>
-    </div>
-
     <h2>Discuter avec ton coach</h2>
     <div id="chatlog"></div>
     <div class="chat-input">
       <input id="chat-in" placeholder="Écris à ton coach…" onkeydown="if(event.key==='Enter')sendChat()">
       <button onclick="sendChat()">➤</button>
     </div>
-    <h2>Poids</h2>
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:baseline;">
-        <b id="w-current">—</b><span class="tiny" id="w-trend"></span>
+
+    <!-- ═══ Bascule vers le niveau 2 ═══ -->
+    <button class="btn ghost" style="margin-top:16px;" id="level2-toggle" onclick="toggleLevel2()">Voir plus (progression, réglages, compte) ▾</button>
+
+    <!-- ═══ NIVEAU 2 : secondaire, replié par défaut ═══ -->
+    <div id="level2" style="display:none;">
+      <h2>Ta transformation</h2>
+      <div class="card">
+        <div class="statrow" id="home-stats"></div>
+        <div id="home-spark" style="margin-top:8px;"></div>
       </div>
-      <div id="w-chart"></div>
-      <div class="setline" style="margin-top:10px;">
-        <div class="stepper" style="flex:1; justify-content:space-between;">
-          <button onclick="wAdj(-0.1)">−</button><span id="w-input">80,0 <small>kg</small></span><button onclick="wAdj(0.1)">+</button>
+      <button class="btn ghost" style="margin-top:8px;" onclick="document.getElementById('progress-photo-input').click()">📸 Photo de progression</button>
+      <input type="file" id="progress-photo-input" accept="image/*" capture="environment" style="display:none" onchange="uploadProgressPhoto(event)">
+      <div id="progress-photos-row" style="display:flex; gap:8px; overflow-x:auto; margin-top:10px; padding-bottom:2px;"></div>
+
+      <h2>Poids</h2>
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+          <b id="w-current">—</b><span class="tiny" id="w-trend"></span>
         </div>
-        <button class="btn ghost" style="width:auto; padding:12px 16px;" onclick="saveWeight()">Peser ✓</button>
+        <div id="w-chart"></div>
+        <div class="setline" style="margin-top:10px;">
+          <div class="stepper" style="flex:1; justify-content:space-between;">
+            <button onclick="wAdj(-0.1)">−</button><span id="w-input">80,0 <small>kg</small></span><button onclick="wAdj(0.1)">+</button>
+          </div>
+          <button class="btn ghost" style="width:auto; padding:12px 16px;" onclick="saveWeight()">Peser ✓</button>
+        </div>
       </div>
+      <h2>Records</h2>
+      <div class="card" id="records"><p class="muted">Tes records apparaîtront après tes premières séances.</p></div>
+      <h2>Notre histoire</h2>
+      <div class="card"><p class="muted" style="font-size:.9rem; line-height:1.8;" id="story"></p></div>
+      <h2>Réglages</h2>
+      <div class="card">
+        <div class="toggle"><span>🔊 Voix du coach (pendant la séance)</span><div class="sw" id="sw-voice" onclick="toggleVoice()"></div></div>
+        <div class="toggle"><span>🔔 Rappels de séance</span><div class="sw" id="sw-notif" onclick="toggleNotif()"></div></div>
+        <div class="toggle"><span>🎯 Objectif</span><span class="tiny" id="set-goal"></span></div>
+        <div class="toggle"><span>✏️ Mon profil (matériel, niveau...)</span><button class="chip" onclick="openProfileEdit()">Modifier</button></div>
+        <div class="toggle"><span>🔥 Cible calories</span><span class="tiny" id="set-kcal"></span></div>
+        <div class="toggle"><span>💾 Sauvegarder mes données</span><button class="chip" onclick="exportData()">Exporter</button></div>
+        <div class="toggle"><span>📂 Restaurer</span><button class="chip" onclick="document.getElementById('import-file').click()">Importer</button><input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"></div>
+        <div class="toggle"><span>🧪 Données de démonstration</span><button class="chip" onclick="loadDemo()">Charger</button></div>
+      </div>
+      <h2>Mon compte</h2>
+      <div class="card">
+        <p class="muted" style="font-size:.85rem;">Connecté avec :</p>
+        <p style="font-weight:700; margin-top:2px;" id="account-email"></p>
+        <button class="btn ghost" style="margin-top:12px;" onclick="logout()">Se déconnecter</button>
+      </div>
+      <button class="btn danger" onclick="resetAll()">Réinitialiser l'application</button>
+      <p class="tiny" style="text-align:center; margin-top:10px;">V1 — moteur de coaching local · nom &amp; identité provisoires</p>
     </div>
-    <h2>Records</h2>
-    <div class="card" id="records"><p class="muted">Tes records apparaîtront après tes premières séances.</p></div>
-    <h2>Notre histoire</h2>
-    <div class="card"><p class="muted" style="font-size:.9rem; line-height:1.8;" id="story"></p></div>
-    <h2>Réglages</h2>
-    <div class="card">
-      <div class="toggle"><span>🔊 Voix du coach (pendant la séance)</span><div class="sw" id="sw-voice" onclick="toggleVoice()"></div></div>
-      <div class="toggle"><span>🔔 Rappels de séance</span><div class="sw" id="sw-notif" onclick="toggleNotif()"></div></div>
-      <div class="toggle"><span>🎯 Objectif</span><span class="tiny" id="set-goal"></span></div>
-      <div class="toggle"><span>✏️ Mon profil (matériel, niveau...)</span><button class="chip" onclick="openProfileEdit()">Modifier</button></div>
-      <div class="toggle"><span>🔥 Cible calories</span><span class="tiny" id="set-kcal"></span></div>
-      <div class="toggle"><span>💾 Sauvegarder mes données</span><button class="chip" onclick="exportData()">Exporter</button></div>
-      <div class="toggle"><span>📂 Restaurer</span><button class="chip" onclick="document.getElementById('import-file').click()">Importer</button><input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"></div>
-      <div class="toggle"><span>🧪 Données de démonstration</span><button class="chip" onclick="loadDemo()">Charger</button></div>
-    </div>
-    <h2>Mon compte</h2>
-    <div class="card">
-      <p class="muted" style="font-size:.85rem;">Connecté avec :</p>
-      <p style="font-weight:700; margin-top:2px;" id="account-email"></p>
-      <button class="btn ghost" style="margin-top:12px;" onclick="logout()">Se déconnecter</button>
-    </div>
-    <button class="btn danger" onclick="resetAll()">Réinitialiser l'application</button>
-    <p class="tiny" style="text-align:center; margin-top:10px;">V1 — moteur de coaching local · nom &amp; identité provisoires</p>
   </section>
 
   <!-- 🏋️ ENTRAÎNEMENT -->
@@ -536,6 +542,7 @@ function render(){
   const p = S.profile, h = new Date().getHours();
   const hello = h<12?'Bonjour':h<18?'Salut':'Bonsoir';
   $('greet').textContent = `${hello} ${p.name} 👋`;
+  loadProgressPhotos();
 
   /* — message d'accueil contextuel — */
   const ls = lastSession();
@@ -896,6 +903,50 @@ function addCustomFood(){
 function delMeal(i){ const mt = mealsToday(); const m = mt[i]; S.meals = S.meals.filter(x=>x!==m); save(); render(); }
 
 /* ═════════════ ANALYSE PHOTO REPAS ═════════════ */
+/* ═════════════ PHOTOS DE PROGRESSION ═════════════ */
+let progressPhotosLoaded = false;
+function uploadProgressPhoto(ev){
+  const f = ev.target.files[0]; if(!f) return;
+  ev.target.value = '';
+  const reader = new FileReader();
+  reader.onload = () => sendProgressPhoto(reader.result, f.type || 'image/jpeg');
+  reader.readAsDataURL(f);
+}
+async function sendProgressPhoto(dataUrl, mimeType){
+  const token = authToken();
+  if(!token){ toast('Connecte-toi d\'abord'); return; }
+  toast('Envoi de la photo…');
+  try{
+    const res = await fetch('/.netlify/functions/progress-photos', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ token, image: dataUrl.split(',')[1], mimeType, goal: S.profile?.goal })
+    });
+    if(!res.ok) throw new Error('api-error');
+    const data = await res.json();
+    toast('Photo enregistrée ✓');
+    if(data.comment){
+      S.chat.push({who:'c', t:data.comment}); S.chat = S.chat.slice(-20); save();
+    }
+    progressPhotosLoaded = false;
+    loadProgressPhotos();
+  }catch(e){
+    toast("Impossible d'envoyer la photo, réessaie plus tard");
+  }
+}
+async function loadProgressPhotos(){
+  if(progressPhotosLoaded) return;
+  const token = authToken(); if(!token) return;
+  try{
+    const res = await fetch('/.netlify/functions/progress-photos?token='+encodeURIComponent(token));
+    if(!res.ok) return;
+    const data = await res.json();
+    progressPhotosLoaded = true;
+    const row = $('progress-photos-row'); if(!row) return;
+    row.innerHTML = (data.photos||[]).slice().reverse().map(p =>
+      `<div style="flex:none; text-align:center;"><img src="data:${p.mimeType};base64,${p.image}" style="width:64px; height:64px; object-fit:cover; border-radius:12px; box-shadow:var(--shadow);"><p class="tiny" style="margin-top:3px;">${p.date.slice(5)}</p></div>`
+    ).join('') || '<p class="muted" style="font-size:.85rem;">Pas encore de photo — ta première sera ton point de départ.</p>';
+  }catch(e){}
+}
 function analyzeMealPhoto(ev){
   const f = ev.target.files[0]; if(!f) return;
   ev.target.value = ''; // permet de reprendre la même photo une prochaine fois
@@ -1027,7 +1078,13 @@ function saveWeight(){
 }
 
 /* ═════════════ CHAT ═════════════ */
-function chatScroll(){ const a = document.querySelector('.chat-input'); if(a) a.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+function chatScroll(){ const el = $('chatlog'); if(el) el.scrollTop = el.scrollHeight; }
+function toggleLevel2(){
+  const el = $('level2'), btn = $('level2-toggle');
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? 'Voir plus (progression, réglages, compte) ▾' : 'Voir moins ▴';
+}
 function addBubble(text, user){
   const row = document.createElement('div'); row.className='coach-row';
   row.innerHTML = user? `<div class="bubble user"></div>` : `<div class="coach-dot small"></div><div class="bubble"></div>`;
@@ -1125,17 +1182,40 @@ function applyCoachAction(reply){
   if(!m) return false;
   let action;
   try{ action = JSON.parse(m[1]); }catch(e){ return false; }
-  const allowed = { place:['salle','halt','kb','elastique','none'], goal:['perte','muscle','forme','reprise'], level:['deb','int','conf'] };
+
+  /* Normalisation tolérante : le modèle peut renvoyer un mot légèrement différent
+     de la valeur technique attendue (ex. "jambes" au lieu de "lower"). On mappe les
+     variantes courantes pour ne jamais dépendre d'une correspondance exacte. */
+  const norm = (v) => String(v||'').toLowerCase().trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,''); // retire les accents
+  const mapPlace = { salle:'salle', 'salle de sport':'salle', gym:'salle',
+    halt:'halt', haltere:'halt', halteres:'halt', 'a la maison':'halt', maison:'halt',
+    kb:'kb', kettlebell:'kb', elastique:'elastique', elastiques:'elastique', bande:'elastique', bandes:'elastique',
+    none:'none', aucun:'none', 'sans materiel':'none', rien:'none' };
+  const mapGoal = { perte:'perte', 'perte de poids':'perte', maigrir:'perte',
+    muscle:'muscle', 'prise de muscle':'muscle', musculation:'muscle',
+    forme:'forme', 'remise en forme':'forme', reprise:'reprise', 'reprise du sport':'reprise' };
+  const mapLevel = { deb:'deb', debutant:'deb', int:'int', intermediaire:'int', conf:'conf', confirme:'conf', avance:'conf' };
+  const mapFocus = { upper:'upper', 'haut du corps':'upper', haut:'upper',
+    lower:'lower', 'bas du corps':'lower', bas:'lower', jambes:'lower', jambe:'lower',
+    full:'full', 'corps complet':'full', complet:'full' };
+
   let changed = false;
-  for(const key of ['place','goal','level']){
-    if(action[key] && allowed[key].includes(action[key])){ S.profile[key] = action[key]; changed = true; }
-  }
-  if(Number.isInteger(action.freq) && action.freq>=1 && action.freq<=7){ S.profile.freq = action.freq; changed = true; }
+  if(action.place){ const v = mapPlace[norm(action.place)]; if(v){ S.profile.place = v; changed = true; } }
+  if(action.goal){ const v = mapGoal[norm(action.goal)]; if(v){ S.profile.goal = v; changed = true; } }
+  if(action.level){ const v = mapLevel[norm(action.level)]; if(v){ S.profile.level = v; changed = true; } }
+  const freqNum = parseInt(action.freq, 10);
+  if(Number.isInteger(freqNum) && freqNum>=1 && freqNum<=7){ S.profile.freq = freqNum; changed = true; }
+
   if(changed){ S.plan = genPlan(S.profile); S.nextDay = 0; save(); toast('Ton programme a été mis à jour ✓'); return true; }
-  if(['upper','lower','full'].includes(action.todayFocus)){
-    regenerateTodayDay(action.todayFocus);
-    save(); toast('Ta séance du jour a été changée ✓');
-    return true;
+
+  if(action.todayFocus){
+    const v = mapFocus[norm(action.todayFocus)];
+    if(v){
+      regenerateTodayDay(v);
+      save(); toast('Ta séance du jour a été changée ✓');
+      return true;
+    }
   }
   return false;
 }
